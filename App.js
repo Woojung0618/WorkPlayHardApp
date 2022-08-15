@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
   StyleSheet,
@@ -9,6 +9,9 @@ import {
   ScrollView,
 } from "react-native";
 import { theme } from "./colors";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const STORAGE_KEY = "@toDos";
 
 export default function App() {
   const [working, setWorking] = useState(true);
@@ -16,7 +19,30 @@ export default function App() {
   const [toDos, setToDos] = useState({}); // toDos[Date.now()] = {text: "sth", work: true}
   const travel = () => setWorking(false);
   const work = () => setWorking(true);
-  const addTodo = () => {
+
+  useEffect(() => {
+    LoadTodos();
+  }, [])
+
+  const LoadTodos = async () => {
+    try {
+      const s = await AsyncStorage.getItem(STORAGE_KEY);
+      setToDos(JSON.parse(s));
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  const saveTodos = async (toSave) => {
+    // asyncStorage 
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  const addTodo = async () => {
     if (text === "") {
       return;
     } else {
@@ -26,9 +52,11 @@ export default function App() {
         [Date.now()]: { text, working },
       };
       setToDos(newToDos);
+      await saveTodos(newToDos);
       setText("");
     }
   };
+  
 
   return (
     <View style={styles.container}>
