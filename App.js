@@ -23,7 +23,7 @@ export default function App() {
       // const newToDos = Object.assign({}, toDos, {[Date.now()]: {text, work: working}});
       const newToDos = {
         ...toDos,
-        [Date.now()]: { text, work: working },
+        [Date.now()]: { text, working },
       };
       setToDos(newToDos);
       setText("");
@@ -63,9 +63,11 @@ export default function App() {
         placeholder={working ? "Add a To Do" : "Where do you want to go?"}
       ></TextInput>
       <ScrollView>
-        {Object.keys(toDos).map(key => <View style={styles.toDo} key={key}>
+        {Object.keys(toDos).map(key => 
+        toDos[key].working === working ?
+        (<View style={styles.toDo} key={key}>
           <Text style={styles.toDoText}>{toDos[key].text}</Text>
-        </View>)}
+        </View>): null)}
       </ScrollView>
     </View>
   );
