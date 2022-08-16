@@ -9,6 +9,7 @@ import {
   ScrollView,
   Alert,
   TouchableWithoutFeedback,
+  ActivityIndicator,
 } from "react-native";
 import { theme } from "./colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -20,6 +21,7 @@ const STORAGE_KEY = "@toDos";
 
 export default function App() {
   const [working, setWorking] = useState(true);
+  const [load, setLoad] = useState(false);
   const [text, setText] = useState("");
   const [toDos, setToDos] = useState({}); // toDos[Date.now()] = {text: "sth", work: true}
   const play = () => setWorking(false);
@@ -50,7 +52,10 @@ export default function App() {
   const LoadTodos = async () => {
     try {
       const s = await AsyncStorage.getItem(STORAGE_KEY);
-      setToDos(JSON.parse(s));
+      if (s) {
+        setToDos(JSON.parse(s));
+        setLoad(true);
+      }
     } catch (e) {
       console.log(e);
     }
@@ -133,14 +138,17 @@ export default function App() {
         onChangeText={(payload) => setText(payload)}
         onSubmitEditing={addTodo}
         value={text}
-        placeholder={working ? "Add a To Do" : "Where do you want to go?"}
+        placeholder={working ? "할 땐 하고" : "놀 땐 놀자"}
       ></TextInput>
       <ScrollView>
-        {toDos &&
+        {!load ? (
+          <ActivityIndicator size="small" style={{ alignItems: "center" }} />
+        ) : (
+          toDos &&
           Object.keys(toDos).map((key) =>
             toDos[key].working === working ? (
               <View style={styles.toDo} key={key}>
-                <View style={{flexDirection: "row", alignItems: "center"}}>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
                   <TouchableWithoutFeedback onPress={() => checkTodo(key)}>
                     {!toDos[key].done ? (
                       <Fontisto
@@ -176,7 +184,8 @@ export default function App() {
                 </TouchableOpacity>
               </View>
             ) : null
-          )}
+          )
+        )}
         {toDos && Object.keys(toDos).length !== 0 && (
           <Text style={styles.smallText} onPress={clearAll}>
             전체 삭제
@@ -192,6 +201,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: theme.bg,
     paddingHorizontal: 20,
+    paddingBottom: 10,
   },
   header: {
     flexDirection: "row",
