@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  Alert,
 } from "react-native";
 import { theme } from "./colors";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AntDesign } from "@expo/vector-icons";
 
 const STORAGE_KEY = "@toDos";
 
@@ -22,7 +24,7 @@ export default function App() {
 
   useEffect(() => {
     LoadTodos();
-  }, [])
+  }, []);
 
   const LoadTodos = async () => {
     try {
@@ -31,16 +33,16 @@ export default function App() {
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
   const saveTodos = async (toSave) => {
-    // asyncStorage 
+    // asyncStorage
     try {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
     } catch (e) {
       console.log(e);
     }
-  }
+  };
 
   const addTodo = async () => {
     if (text === "") {
@@ -56,7 +58,22 @@ export default function App() {
       setText("");
     }
   };
-  
+
+  const deleteTodo = (key) => {
+    Alert.alert("Delete To Do", "정말로 삭제하시겠습나까?", [
+      { text: "취소" },
+      {
+        text: "삭제",
+        style: "destructive",
+        onPress: () => {
+          const newToDos = { ...toDos };
+          delete newToDos[key];
+          setToDos(newToDos);
+          saveTodos(newToDos);
+        },
+      },
+    ]);
+  };
 
   return (
     <View style={styles.container}>
@@ -91,11 +108,16 @@ export default function App() {
         placeholder={working ? "Add a To Do" : "Where do you want to go?"}
       ></TextInput>
       <ScrollView>
-        {Object.keys(toDos).map(key => 
-        toDos[key].working === working ?
-        (<View style={styles.toDo} key={key}>
-          <Text style={styles.toDoText}>{toDos[key].text}</Text>
-        </View>): null)}
+        {Object.keys(toDos).map((key) =>
+          toDos[key].working === working ? (
+            <View style={styles.toDo} key={key}>
+              <Text style={styles.toDoText}>{toDos[key].text}</Text>
+              <TouchableOpacity onPress={() => deleteTodo(key)}>
+                <AntDesign name="delete" size={24} color={theme.gray} />
+              </TouchableOpacity>
+            </View>
+          ) : null
+        )}
       </ScrollView>
     </View>
   );
@@ -131,10 +153,12 @@ const styles = StyleSheet.create({
     paddingVertical: 20,
     paddingHorizontal: 30,
     borderRadius: 30,
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   toDoText: {
     color: theme.text,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });
